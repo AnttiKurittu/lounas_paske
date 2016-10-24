@@ -4,7 +4,31 @@ import requests
 import re
 import datetime
 import json
+import os.path
+import hashlib
 from bs4 import BeautifulSoup
+
+def get_page(url):
+  hash = hashlib.md5()
+  hash.update(url)
+  hash = hash.hexdigest()
+  cachefile = ".lounas/" + week_number + "-" + hash
+  if os.path.isfile(cachefile):
+      page = open(cachefile, "r")
+      page = page.read()
+      return page
+  else:   
+    try:
+      page = requests.get(url)
+      page = page.text
+      page = page.encode('utf8')
+      file = open(cachefile, "w")
+      file.write(page)
+      file.close()
+      return page
+    except requests.exceptions.ConnectionError:
+      print "Yhteysvirhe, %s ei vastaa." % url
+      return False
 
 def strip_html_tags(data):
   out = re.compile(r'<.*?>')
@@ -28,8 +52,13 @@ def parse_menu_from_html(page_content, weekday):
     except KeyError:
       continue
 
+if not os.path.exists(".lounas"):
+  os.mkdir(".lounas")
+
 today_date = str(datetime.datetime.now().isoformat())[0:10]
+week_number = datetime.datetime.now().strftime("%W")
 weekday_number = datetime.datetime.today().weekday()
+
 if weekday_number == 0:
   weekday = 'Maanantai'
 elif weekday_number == 1:
@@ -50,15 +79,12 @@ pihka_urls = ['http://ruoholahti.pihka.fi', 'http://meclu.pihka.fi']
 amica_urls = ['http://www.amica.fi/modules/json/json/Index?costNumber=3131&language=fi']
 
 for url in pihka_urls:
-  try:
-    page = requests.get(url)
-    parse_menu_from_html(page.text, weekday)
-  except requests.exceptions.ConnectionError:
-    print "Yhteysvirhe, %s ei vastaa." % url
+  page = get_page(url)
+  parse_menu_from_html(page, weekday)
 
 for url in amica_urls:
-  menu_json = requests.get(url)
-  menu = json.loads(menu_json.text)
+  menu_json = get_page(url)
+  menu = json.loads(menu_json)
   print '\n' + '\033[95mRavintola ' + menu['RestaurantName'] + '\033[0m'
   for entry in menu['MenusForDays']:
     if today_date in entry['Date']:
