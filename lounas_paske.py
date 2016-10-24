@@ -73,7 +73,7 @@ else:
   print 'Nyt on viikonloppu. Lounasta ei tarjoilla.'
   exit()
 
-print "## Lounaslistat %s %s" % (today_date, weekday)
+print "## Lounaslistat %s %s, viikko numer %s" % (today_date, weekday, week_number)
 
 pihka_urls = ['http://ruoholahti.pihka.fi', 'http://meclu.pihka.fi']
 amica_urls = ['http://www.amica.fi/modules/json/json/Index?costNumber=3131&language=fi']
