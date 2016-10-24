@@ -6,13 +6,18 @@ import datetime
 import json
 import os.path
 import hashlib
+from os.path import expanduser
 from bs4 import BeautifulSoup
+
+home = expanduser("~")
+if not os.path.exists(home + "/.lounas"):
+  os.mkdir(home + "/.lounas")
 
 def get_page(url):
   hash = hashlib.md5()
   hash.update(url)
   hash = hash.hexdigest()
-  cachefile = ".lounas/" + week_number + "-" + hash
+  cachefile = home + "/.lounas/" + week_number + "-" + hash
   if os.path.isfile(cachefile):
       page = open(cachefile, "r")
       page = page.read()
@@ -52,8 +57,6 @@ def parse_menu_from_html(page_content, weekday):
     except KeyError:
       continue
 
-if not os.path.exists(".lounas"):
-  os.mkdir(".lounas")
 
 today_date = str(datetime.datetime.now().isoformat())[0:10]
 week_number = datetime.datetime.now().strftime("%W")
