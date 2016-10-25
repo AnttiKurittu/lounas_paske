@@ -1,5 +1,6 @@
 #!/usr/bin/python
-# -*- Coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
+
 import requests
 import re
 import datetime
@@ -7,7 +8,11 @@ import json
 import os.path
 import hashlib
 from os.path import expanduser
-from bs4 import BeautifulSoup
+try:
+  from bs4 import BeautifulSoup
+except ImportError:
+  print("Lounas_paske edellyttää BeautifulSoup-kirjastoa; aja \"pip install bs4\".")
+  exit()
 
 home = expanduser("~")
 if not os.path.exists(home + "/.lounas"):
@@ -15,7 +20,7 @@ if not os.path.exists(home + "/.lounas"):
 
 def get_page(url):
   hash = hashlib.md5()
-  hash.update(url)
+  hash.update(url.encode('utf8'))
   hash = hash.hexdigest()
   cachefile = home + "/.lounas/" + week_number + "-" + hash
   if os.path.isfile(cachefile):
@@ -32,7 +37,7 @@ def get_page(url):
       file.close()
       return page
     except requests.exceptions.ConnectionError:
-      print "Yhteysvirhe, %s ei vastaa." % url
+      print("Yhteysvirhe, %s ei vastaa." % url)
       return False
 
 def strip_html_tags(data):
@@ -44,7 +49,7 @@ def strip_html_tags(data):
 def parse_menu_from_html(page_content, weekday):
   soup = BeautifulSoup(page_content, 'html.parser') 
   restaurant = strip_html_tags(str(soup.title))
-  print '\n' + '\033[95m' + restaurant.replace(" | Lounasravintola", "") + '\033[0m' + '\n'
+  print('\n' + '\033[95m' + restaurant.replace(" | Lounasravintola", "") + '\033[0m' + '\n')
   divs = soup.find_all('div')
   for item in divs:
     try:
@@ -53,10 +58,9 @@ def parse_menu_from_html(page_content, weekday):
         if weekday in menu:
           for line in menu.splitlines():
             if 'menu-name' in line:
-              print ' - ', strip_html_tags(line)
+              print(' - ' + strip_html_tags(line))
     except KeyError:
       continue
-
 
 today_date = str(datetime.datetime.now().isoformat())[0:10]
 week_number = datetime.datetime.now().strftime("%W")
@@ -73,10 +77,10 @@ elif weekday_number == 3:
 elif weekday_number == 4:
   weekday = 'Perjantai'
 else:
-  print 'Nyt on viikonloppu. Lounasta ei tarjoilla.'
+  print('Nyt on viikonloppu. Lounasta ei tarjoilla.')
   exit()
 
-print "## Lounaslistat %s %s, viikko %s" % (today_date, weekday, week_number)
+print("## Lounaslistat %s %s, viikko %s" % (today_date, weekday, week_number))
 
 pihka_urls = ['http://ruoholahti.pihka.fi', 'http://meclu.pihka.fi']
 amica_urls = ['http://www.amica.fi/modules/json/json/Index?costNumber=3131&language=fi']
@@ -88,15 +92,15 @@ for url in pihka_urls:
 for url in amica_urls:
   menu_json = get_page(url)
   menu = json.loads(menu_json)
-  print '\n' + '\033[95mRavintola ' + menu['RestaurantName'] + '\033[0m'
+  print('\n' + '\033[95mRavintola ' + menu['RestaurantName'] + '\033[0m')
   for entry in menu['MenusForDays']:
     if today_date in entry['Date']:
       try:
         for option in entry['SetMenus']:
-          print "\n",
+          print
           for ingredient in option['Components']:
-            print " - " + ingredient
+            print(" - " + ingredient)
       except IndexError:
         continue
 
-print "\n",
+print
