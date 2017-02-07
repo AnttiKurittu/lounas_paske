@@ -55,7 +55,7 @@ def parse_menu_from_html(page_content, weekday):
     try:
       if 'menu-day' in item['class']:
         menu = str(item)
-        if weekday in menu:
+        if weekday[0] in menu or weekday[1] in menu:
           for line in menu.splitlines():
             if 'menu-name' in line:
               print(' - ' + strip_html_tags(line))
@@ -67,20 +67,20 @@ week_number = datetime.datetime.now().strftime("%W")
 weekday_number = datetime.datetime.today().weekday()
 
 if weekday_number == 0:
-  weekday = 'Maanantai'
+  weekday = ['Maanantai', 'Monday']
 elif weekday_number == 1:
-  weekday = 'Tiistai'
+  weekday = ['Tiistai', 'Tuesday']
 elif weekday_number == 2:
-  weekday = 'Keskiviikko'
+  weekday = ['Keskiviikko', 'Wednesday']
 elif weekday_number == 3:
-  weekday = 'Torstai'
+  weekday = ['Torstai', 'Thursday']
 elif weekday_number == 4:
-  weekday = 'Perjantai'
+  weekday = ['Perjantai', 'Friday']
 else:
   print('Nyt on viikonloppu. Lounasta ei tarjoilla.')
   exit()
 
-print("## Lounaslistat %s %s, viikko %s" % (today_date, weekday, week_number))
+print("## Lounaslistat %s %s, viikko %s" % (today_date, weekday[0], week_number))
 
 pihka_urls = ['http://ruoholahti.pihka.fi', 'http://meclu.pihka.fi']
 amica_urls = ['http://www.amica.fi/modules/json/json/Index?costNumber=3131&language=fi']
@@ -91,6 +91,7 @@ for url in pihka_urls:
 
 for url in amica_urls:
   menu_json = get_page(url)
+  menu_json = menu_json
   menu = json.loads(menu_json)
   print('\n' + '\033[95mRavintola ' + menu['RestaurantName'] + '\033[0m')
   for entry in menu['MenusForDays']:
